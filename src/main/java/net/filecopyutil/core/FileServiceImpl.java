@@ -66,6 +66,10 @@ public class FileServiceImpl implements FileService {
         this.destinationPath = destinationPath;
     }
 
+    public void setSplitCountCopyFiles(int splitCountCopyFiles) {
+        this.splitCountCopyFiles = splitCountCopyFiles;
+    }
+
     public void setPoolSize(int poolSize) {
         this.poolSize = poolSize;
         executor = Executors.newFixedThreadPool(poolSize);
@@ -95,6 +99,16 @@ public class FileServiceImpl implements FileService {
         
         if (isCountPositive.test(countCopyFiles)) {
             log.error("Count of files to copy need to be bigger then 0 (check parameter \"-DcountCopyFiles\")");
+            return false;
+        }
+
+        if (isCountPositive.test(splitCountCopyFiles)) {
+            log.error("Count of files to copy in each folder need to be bigger then 0 (check parameter \"-DsplitCountCopyFiles\")");
+            return false;
+        }
+
+        if (countCopyFiles < splitCountCopyFiles) {
+            log.error("Parameter \"-DsplitCountCopyFiles\" bigger then \"-DcountCopyFiles\"");
             return false;
         }
 
@@ -138,9 +152,6 @@ public class FileServiceImpl implements FileService {
             return false;
         }
 
-        splitCountCopyFiles =
-                countCopyFiles/destinationFolderPathList.size();
-
         return true;
     }
 
@@ -161,51 +172,49 @@ public class FileServiceImpl implements FileService {
         int currentValue = 0;
         List<File> subFileList;
         List<File> copyFileList;
-        if (countCopyFiles < sourceFileList.size()) {
+        if (countCopyFiles < sourceFileList.size())
             subFileList = sourceFileList.subList(currentValue, countCopyFiles);
-//            countCopyFiles -= 1;
-        } else {
+        else
             subFileList = sourceFileList;
-//            countCopyFiles = subFileList.size() - 1;
-        }
+
+        int arrSize = subFileList.size();
+        log.debug("Prepared {} files to copy", arrSize);
 
         TaskExecutor taskExecutor = new ConcurrentTaskExecutor();
 
         int nextPosition = 0;
-        while (countCopyFiles > currentValue) {
+        while (arrSize > currentValue) {
+
             nextPosition += splitCountCopyFiles;
+            if (nextPosition > arrSize)
+                nextPosition = arrSize;
+
             log.debug("Get position from {} to {}",
                     currentValue, nextPosition);
 
-            if (nextPosition > countCopyFiles)
-                nextPosition = countCopyFiles - 1;
-
             copyFileList = subFileList.subList(currentValue, nextPosition);
+            currentValue = nextPosition;
 
             if (isListNonValid.test(copyFileList)) {
                 log.info("No files to copy");
                 break;
             }
 
-//            executor.submit(new FileCopyHandler(copyFileList));
+            executor.submit(new FileCopyHandler(copyFileList));
 
-            taskExecutor.execute(new FileCopyHandler(copyFileList));
+//            taskExecutor.execute(new FileCopyHandler(copyFileList));
 
-            if (nextPosition > countCopyFiles)
-                currentValue = nextPosition;
             log.debug("Processed {} files", currentValue);
         }
 
-/*
         try {
             executor.shutdown();
             executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("Error while shutdown execute service {}", e.getMessage(), e);
         }
-*/
 
-        log.info("Copy in process");
+        log.info("Copy finished");
         destinationFolderPathList.stream()
                 .forEach(dir -> log.info("Directory {} has {} files",
                         dir.getName(), dir.listFiles().length));

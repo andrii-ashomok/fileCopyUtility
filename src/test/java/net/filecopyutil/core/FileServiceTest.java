@@ -32,7 +32,11 @@ public class FileServiceTest {
 
         assert !fileService.isValidInputArg();
 
-        fileService.setCountCopyFiles(5);
+        fileService.setCountCopyFiles(10);
+
+        assert !fileService.isValidInputArg();
+
+        fileService.setSplitCountCopyFiles(3);
 
         assert !fileService.isValidInputArg();
 
@@ -44,6 +48,10 @@ public class FileServiceTest {
                 .concat(",").concat(new File(tempPath2).getAbsolutePath()));
 
         assert fileService.isValidInputArg();
+
+        fileService.setSplitCountCopyFiles(11);
+
+        assert !fileService.isValidInputArg();
     }
 
     @Test(priority = 2)
@@ -66,6 +74,7 @@ public class FileServiceTest {
                 .concat(tempPath2));
         fileService.setCountCopyFiles(5);
         fileService.setPoolSize(3);
+        fileService.setSplitCountCopyFiles(2);
         assert fileService.isValidDestination();
 
         fileService.copy();
@@ -104,7 +113,7 @@ public class FileServiceTest {
         int currentValue = 0;
         int step = 0;
 
-        List<Integer> subList;
+        List<Integer> subList = new ArrayList<>();
         while(currentValue < sourceList.size()) {
             step += userStep;
 
@@ -113,13 +122,14 @@ public class FileServiceTest {
 
             System.out.println("From " + currentValue + " to " + step);
 
-            subList = sourceList.subList(currentValue, step);
+            subList.addAll(sourceList.subList(currentValue, step));
 
             currentValue = step;
 
             System.out.println("Size: " + subList.size());
         }
 
+        assert subList.size() == sourceList.size();
     }
 
 }

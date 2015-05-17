@@ -13,6 +13,7 @@
         <property name="sourcePath" value="#{environment.getProperty('sourcePath', '${source.path}')}"/>
         <property name="countCopyFiles" value="#{environment.getProperty('countCopyFiles', '${source.file.count}')}"/>
         <property name="destinationPath" value="#{environment.getProperty('destinationPath', '${source.destination.path}')}"/>
+        <property name="splitCountCopyFiles" value="#{environment.getProperty('splitCountCopyFiles', '${source.split.step}')}"/>
     </bean>
 
 </beans>
