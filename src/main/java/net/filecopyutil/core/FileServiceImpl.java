@@ -7,11 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.util.StopWatch;
-
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -166,6 +163,9 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void copy() {
+        StopWatch watch = new StopWatch();
+        watch.start();
+
         List<File> sourceFileList = Stream.of(new File(sourcePath).listFiles())
                 .collect(Collectors.toList());
 
@@ -214,7 +214,9 @@ public class FileServiceImpl implements FileService {
             log.error("Error while shutdown execute service {}", e.getMessage(), e);
         }
 
-        log.info("Copy finished");
+        watch.stop();
+        log.info("Copy finished with duration {} ms", watch.getLastTaskTimeMillis());
+
         destinationFolderPathList.stream()
                 .forEach(dir -> log.info("Directory {} has {} files",
                         dir.getName(), dir.listFiles().length));

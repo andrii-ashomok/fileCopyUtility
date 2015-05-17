@@ -23,5 +23,7 @@ public class Main {
         ApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-config.xml");
         FileService fs = context.getBean(FileServiceImpl.class);
         fs.init();
+
+        System.exit(0);
     }
 }
