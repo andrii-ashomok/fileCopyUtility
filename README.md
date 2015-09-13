@@ -9,5 +9,3 @@ Run java to install  your source folders:
  -DsplitCountCopyFiles, split copy process;
 
 Also you can use core.properties to install your source folders, but you need to add @Value from spring.
-
-Not updated
